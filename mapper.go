@@ -1,10 +1,16 @@
-package mapper
+package rise
 
 import (
 	"strings"
 
 	"gorm.io/gorm"
 )
+
+type FilterPage struct {
+	Limit   int
+	Offset  int
+	OrderBy string
+}
 
 type Mapper[T any] struct {
 }
@@ -38,6 +44,19 @@ func (m *Mapper[T]) filters(filters ...any) func(*gorm.DB) *gorm.DB {
 
 func (m *Mapper[T]) Find(db *gorm.DB, dist any, filters ...any) error {
 	return db.Model(new(T)).Scopes(m.filters(filters...)).Find(dist).Error
+}
+
+func (m *Mapper[T]) Pagination(db *gorm.DB, offset, limit int, orderby string, dst any, filters ...any) (int64, error) {
+	db = db.Model(new(T)).Scopes(m.filters(filters...))
+	var count int64
+	err := db.Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	if count == 0 {
+		return count, nil
+	}
+	return count, db.Offset(offset).Limit(limit).Order(orderby).Find(dst).Error
 }
 
 func (m *Mapper[T]) Update(db *gorm.DB, value *T, columes ...any) error {
