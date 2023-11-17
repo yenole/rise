@@ -6,12 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type FilterPage struct {
-	Limit   int
-	Offset  int
-	OrderBy string
-}
-
 type Mapper[T any] struct {
 }
 
@@ -61,7 +55,7 @@ func (m *Mapper[T]) Pagination(db *gorm.DB, offset, limit int, orderby string, d
 
 func (m *Mapper[T]) Update(db *gorm.DB, value *T, columes ...any) error {
 	if len(columes) == 0 {
-		return db.Model(new(T)).Updates(value).Error
+		return db.Model(value).Updates(value).Error
 	}
 	return db.Model(value).Select(columes[0], columes[1:]...).Updates(value).Error
 }
